@@ -1,0 +1,27 @@
+version: '3'
+services:
+  frontend:
+    restart: unless-stopped
+    build: .
+    ports:
+      - 80:80
+      - 443:443
+      - 4657:4657
+    environment:
+      - CERTBOT_EMAIL=example.
+      - IS_STAGING=0
+    volumes:
+      - ~/letsencrypt:/etc/letsencrypt
+  app:
+    restart: unless-stopped
+    image: registry.gitlab.com/USER_NAME/website-registry/website:v1.0.0
+    env_file: .env
+    ports:
+      - 3333:3333
+
+  api:
+    restart: unless-stopped
+    image: registry.gitlab.com/USER_NAME/api-registry/api:v1.0.0
+    env_file: .env
+    ports:
+      - 4000:4000

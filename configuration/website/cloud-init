@@ -1,0 +1,32 @@
+#cloud-config
+users:
+  - name: admin
+    shell: /bin/zsh # Enable the use of ZSH by default.
+    groups: sudo
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh-authorized-keys:
+      -
+runcmd:
+  - sed -i -e '/^#Port 22/s/^.*$/Port 2222/' /etc/ssh/sshd_config
+  - sed -i -e '/^PermitRootLogin/s/^.*$/PermitRootLogin no/' /etc/ssh/sshd_config
+  - sed -i -e '$aAllowUsers admin' /etc/ssh/sshd_config
+  - systemctl restart ssh
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw limit 2222/tcp
+  - ufw allow 4657
+  - ufw allow www
+  - ufw allow http
+  - ufw allow https
+  - ufw allow ntp
+  - apt install zsh apt-transport-https ca-certificates curl software-properties-common -yq # Install software
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+  - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
+  - apt update
+  - apt install docker-ce -y
+  - curl -L https://github.com/docker/compose/releases/download/1.24.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+  - chmod +x /usr/local/bin/docker-compose
+  - timedatectl set-timezone UTC
+  - yes | ufw enable # Should always be last
+power_state:
+  mode: reboot
